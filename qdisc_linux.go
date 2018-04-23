@@ -324,10 +324,11 @@ func (h *Handle) QdiscList(link Link) ([]Qdisc, error) {
 		}
 
 		base := QdiscAttrs{
-			LinkIndex: int(msg.Ifindex),
-			Handle:    msg.Handle,
-			Parent:    msg.Parent,
-			Refcnt:    msg.Info,
+			LinkIndex:  int(msg.Ifindex),
+			Handle:     msg.Handle,
+			Parent:     msg.Parent,
+			Refcnt:     msg.Info,
+			Statistics: nil,
 		}
 		var qdisc Qdisc
 		qdiscType := ""
@@ -405,6 +406,17 @@ func (h *Handle) QdiscList(link Link) ([]Qdisc, error) {
 					}
 
 					// no options for ingress
+				}
+			// For backward compatibility.
+			case nl.TCA_STATS:
+				base.Statistics, err = parseTcStats(attr.Value)
+				if err != nil {
+					return nil, err
+				}
+			case nl.TCA_STATS2:
+				base.Statistics, err = parseTcStats2(attr.Value)
+				if err != nil {
+					return nil, err
 				}
 			}
 		}
